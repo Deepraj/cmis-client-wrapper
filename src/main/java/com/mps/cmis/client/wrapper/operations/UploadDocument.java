@@ -37,7 +37,7 @@ public class UploadDocument {
 			latestObjectID = uploadNewVersion(documentParentFolder, fileName, content, version);
 			System.out.println("Document has been updated having name:" + fileName);
 		} else {
-			latestObjectID = createDocument(documentParentFolder, fileName, content);
+			latestObjectID = createDocument(documentParentFolder, fileName, content, version);
 			System.out.println("New document has been created having name:" + fileName);
 		}
 		return latestObjectID;
@@ -103,7 +103,7 @@ public class UploadDocument {
 		}
 	}
 
-	private String createDocument(Folder folder, String fileName, byte[] content) {
+	private String createDocument(Folder folder, String fileName, byte[] content, Version version) {
 		Map<String, Object> properties = new HashMap<String, Object>();
 		properties.put(PropertyIds.OBJECT_TYPE_ID, "cmis:document");
 		properties.put(PropertyIds.NAME, fileName);
@@ -112,17 +112,16 @@ public class UploadDocument {
 				stream);
 		Document newDoc = null;
 		try {
-			newDoc = folder.createDocument(properties, contentStream, VersioningState.MAJOR);
-			System.out.println("Created new document: " + newDoc.getId());
+			VersioningState versioningState = version.equals(Version.MAJOR) ? VersioningState.MAJOR : VersioningState.MINOR ;
+			newDoc = folder.createDocument(properties, contentStream, versioningState);
 		} catch (CmisContentAlreadyExistsException ccaee) {
 			newDoc = (Document) this.session.getObjectByPath(folder.getPath() + "/" + fileName);
-			System.out.println("Document already exists: " + fileName);
 		}
 		return newDoc.getId();
 
 	}
 	
-	public String uploadNewVersion(Folder folder, String fileName, byte[] content, Version version) {
+	private String uploadNewVersion(Folder folder, String fileName, byte[] content, Version version) {
 		
 		String objectId = null;
 		String filePath = folder.getPath() + "/" + fileName;
@@ -131,23 +130,9 @@ public class UploadDocument {
 		return objectId;
 	}
 	
-	public String uploadNewVersion(String objectID, byte[] content, Version version) {
-		
-		String latestObjectID = null;
-		try {
-			Document document = (Document) session.getObject(objectID);
-			latestObjectID = upload(document, content, version).toString();
-		} catch (CmisObjectNotFoundException onfe) {
-			System.out.println("No document found" + onfe);	
-		}
-		return latestObjectID;
-
-	}
-
 	private String upload(Document document, byte[] content, Version version ) {
 		
 		ObjectId objectId = null;
-		String newobjectId=null;
 		
 		if (document.getAllowableActions().getAllowableActions()
 				.contains(org.apache.chemistry.opencmis.commons.enums.Action.CAN_CHECK_OUT)) {
@@ -158,34 +143,8 @@ public class UploadDocument {
 					Long.valueOf(content.length), "text/plain", stream);
 			boolean isMajorVersion = version.name().equals(Version.MAJOR.name());
 			objectId = pwc.checkIn(isMajorVersion, null, contentStream, version.name() + " changes");
-		    newobjectId=splitObjectID(objectId.toString());
 			
 		}
-		return newobjectId.toString();
-	}
-	private String splitObjectID (String objectId)
-	{
-		String[] newObjectId=objectId.split(":");
-		return newObjectId[1];
-	}
-	
-/*	public String uploadDocumentFromFileSystem() throws IOException
-	{
-		 // creating a document 
-		  String filePath =  "C:/Documents and Settings/a.kushik/Desktop/Test.txt"; 
-		  File file = new File(filePath); 
-		  String content = readFile(filePath,StandardCharsets.UTF_8);
-		  System.out.println(content);
-		  String filename =file.getName(); 
-		  Folder folder = (Folder)session.getObjectByPath("/Sites/"); 
-		  byte[] buf =content.getBytes("UTF-8"); 
-		 createDocument(folder, filename, buf);
-		 return null;
-	}
-	
-	static String readFile(String path, Charset encoding) throws IOException {
-		byte[] encoded = Files.readAllBytes(Paths.get(path));
-		return new String(encoded, encoding);
-	}*/
-	
+		return objectId.getId();
+	}	
 }

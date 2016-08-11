@@ -1,16 +1,6 @@
 package com.mps.cmis.client.wrapper;
 
-
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-
-import org.apache.chemistry.opencmis.client.api.Session;
-
 import com.mps.cmis.client.wrapper.enums.Version;
-import com.mps.cmis.client.wrapper.operations.DownloadDocument;
-import com.mps.cmis.client.wrapper.operations.UploadDocument;
-import com.mps.cmis.client.wrapper.session.CMISSession;
 
 /**
  * Hello world!
@@ -18,42 +8,23 @@ import com.mps.cmis.client.wrapper.session.CMISSession;
  */
 public class Main {
 	
-	static String path = "/Sites/cmis-wrapper/client3/documents/";
-	static String fileName = "test1.txt";
+	static String path = "/Sites/cmis-wrapper/client7/documents/";
+	static String fileName = "test.txt";
 	
 	
-	public static void main(String[] args) throws Exception {
+	public static void main(String[] args) {
 
-		CMISSession cmisSession = new CMISSession();
-		Session session = cmisSession.retrieveSession();
-		String objectID = uploadDocument(session);
-		//downloadDocumentByObjectID(session, objectID);
+		String objectID = Connector.uploadDocument(path, fileName, content(), Version.MAJOR);
+		System.out.println("Uploaded document object id is: "+ objectID);
 		
+		System.out.println("************************************");
+		String content = Connector.downloadDocumant(path, fileName, "1.0");
+		System.out.println(content);
 
-		downloadDocumantByFileName(session, path, fileName, "1.0");
-		    
-	}
-
-	public static String uploadDocument(Session session) {
-
-		UploadDocument uploadDocument = new UploadDocument(session);
-		byte[] content = content();
-		Version version = Version.MAJOR;
-		String objectID = uploadDocument.uploadDoc(path, fileName, content, version);
-		return objectID;
-
-	}
-
-	public static void downloadDocumantByFileName(Session session, String folderPath, String fileName, String version) throws Exception {
-
-		DownloadDocument downloadDocument = new DownloadDocument(session);
-		String downloadedContent = downloadDocument.downloadDoc(folderPath, fileName, version);
-		System.out.println("downloaded content by file name ");
-		System.out.println(downloadedContent);
 	}
 
 	private static byte[] content() {
-		String docText = "This is version 3.0";
+		String docText = "This is version 1.0";
 		byte[] content = docText.getBytes();
 		return content;
 	}
