@@ -1,34 +1,59 @@
 package com.mps.cmis.client.wrapper;
 
-import org.apache.chemistry.opencmis.client.api.Session;
-
-import com.mps.cmis.client.wrapper.enums.Version;
 import com.mps.cmis.client.wrapper.operations.DownloadDocument;
 import com.mps.cmis.client.wrapper.operations.UploadDocument;
 import com.mps.cmis.client.wrapper.session.CMISSession;
 
 public class Connector {
 	
-	private static Session session;
+	private static CMISSession cmisSession;
 	
 	private Connector(){}
 	
-	static{		
-		session = new CMISSession().retrieveSession();
+	public static CMISUploadResponse uploadDocument(CMISUploadRequest cmisRequest) {
+		
+		CMISUploadResponse cmisUploadResponse = null;
+		if(cmisSession == null){
+			try {
+				cmisSession = CMISSession.getInstance();
+			} catch (Exception ex) {
+				cmisUploadResponse = new CMISUploadResponse();
+				cmisUploadResponse.setErrorMessage("Cann't connect to CMIS repositiry, because of following exception: "+ ex);
+				return cmisUploadResponse;
+			}
+		}		
+		try {
+			UploadDocument uploadDocument = new UploadDocument(cmisSession);
+			cmisUploadResponse  = uploadDocument.uploadDoc(cmisRequest.getFolderpath(), cmisRequest.getFileName(), cmisRequest.getContent(), cmisRequest.getVersion());
+		} catch (Exception ex) {
+			cmisUploadResponse = new CMISUploadResponse();
+			cmisUploadResponse.setErrorMessage("Cann't upload the document because of following exception: "+ ex);
+			return cmisUploadResponse;
+		}
+		return cmisUploadResponse;
 	}
 	
-	public static String uploadDocument(String path, String fileName, byte[] content, Version version) {
+	public static CMISDownloadResponse downloadDocumant(CMISDownloadRequest cmisDownloadRequest) {
 
-		UploadDocument uploadDocument = new UploadDocument(session);
-		String objectID = uploadDocument.uploadDoc(path, fileName, content, version);
-		return objectID;
-	}
-	
-	public static String downloadDocumant(String folderPath, String fileName, String version) {
-
-		DownloadDocument downloadDocument = new DownloadDocument(session);
-		String downloadedContent = downloadDocument.downloadDoc(folderPath, fileName, version);
-		return downloadedContent;
+		CMISDownloadResponse cmisDownloadResponse = null;
+		if(cmisSession == null){
+			try {
+				cmisSession = CMISSession.getInstance();
+			} catch (Exception ex) {
+				cmisDownloadResponse = new CMISDownloadResponse();
+				cmisDownloadResponse.setErrorMessage("Cann't connect to CMIS repositiry, because of following exception: "+ ex);
+				return cmisDownloadResponse;
+			}
+		}
+		try {
+			DownloadDocument downloadDocument = new DownloadDocument(cmisSession);
+			cmisDownloadResponse = downloadDocument.downloadDoc(cmisDownloadRequest.getFolderPath(), cmisDownloadRequest.getFileName(), cmisDownloadRequest.getVersion());
+		} catch (Exception ex) {
+			cmisDownloadResponse = new CMISDownloadResponse();
+			cmisDownloadResponse.setErrorMessage("Cann't download the document, because of following exception: "+ ex);
+			return cmisDownloadResponse;
+		}
+		return cmisDownloadResponse;
 	}
 
 }

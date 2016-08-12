@@ -9,38 +9,40 @@ import org.apache.chemistry.opencmis.client.api.Document;
 import org.apache.chemistry.opencmis.client.api.Property;
 import org.apache.chemistry.opencmis.client.api.Session;
 import org.apache.chemistry.opencmis.commons.data.ContentStream;
-import org.apache.chemistry.opencmis.commons.exceptions.CmisObjectNotFoundException;
+
+import com.mps.cmis.client.wrapper.CMISDownloadResponse;
+import com.mps.cmis.client.wrapper.session.CMISSession;
 
 public class DownloadDocument {
 
 	private Session session;
 
-	public DownloadDocument(Session session) {
-		this.session = session;
+	public DownloadDocument(CMISSession cmisSession) throws Exception {
+		this.session = cmisSession.retrieveSession();
 	}
 
-	public String downloadDoc(String folderPath, String fileName, String version) {
-		String path = folderPath + "/"+ fileName;
-		try {
-			Document doc = (Document) session.getObjectByPath(path);
-			String ObjectID = doc.getId();
-			ObjectID=createObjectId(ObjectID, version);
-			String document = download(ObjectID);
-			return document;
-		} catch (CmisObjectNotFoundException onfe) {
-			System.out.println("Document does not exist:" + onfe);
-			return null;
-		}
+	public CMISDownloadResponse downloadDoc(String folderPath, String fileName, String version) {
+		
+		String path = folderPath + "/" + fileName;
+		Document doc = (Document) session.getObjectByPath(path);
+		String objectID = doc.getId();
+		objectID = createObjectId(objectID, version);
+		String content = download(objectID);
+		CMISDownloadResponse cmisDownloadResponse = new CMISDownloadResponse();
+		cmisDownloadResponse.setSuccess(true);	
+		cmisDownloadResponse.setContent(content);
+		cmisDownloadResponse.setObjectID(objectID);
+		return cmisDownloadResponse;
 	}
 	
-	public String createObjectId(String previousId, String version) {
+	private String createObjectId(String previousId, String version) {
 		String newObjectID = null;
 		String[] splittedObjectID = previousId.split(";");
 		newObjectID = splittedObjectID[0] + ";" + version;
 		return newObjectID;
 	}
 
-	public String download(String objectID){
+	private String download(String objectID){
 	
 		Document doc = (Document) session.getObject(objectID);
 

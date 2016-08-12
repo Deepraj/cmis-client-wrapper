@@ -17,30 +17,34 @@ import org.apache.chemistry.opencmis.commons.exceptions.CmisContentAlreadyExists
 import org.apache.chemistry.opencmis.commons.exceptions.CmisObjectNotFoundException;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.ContentStreamImpl;
 
+import com.mps.cmis.client.wrapper.CMISUploadResponse;
 import com.mps.cmis.client.wrapper.enums.Version;
+import com.mps.cmis.client.wrapper.session.CMISSession;
 
 public class UploadDocument {
 
 	private Session session;
 
-	public UploadDocument(Session session) {
-		this.session = session;
-
+	public UploadDocument(CMISSession cmisSession) throws Exception {
+		this.session = cmisSession.retrieveSession();
 	}
 
-	public String uploadDoc(String folderpath, String fileName, byte[] content, Version version) {
+	public CMISUploadResponse uploadDoc(String folderpath, String fileName, byte[] content, Version version) {
 		String latestObjectID = null;
 
 		String fileAbsolutePath = folderpath + "/" + fileName; //put check if folder ends with slash or not, file name should end with some extension
 		Folder documentParentFolder = getDocumentParentFolder(folderpath);
 		if (isCMISObjectExist(fileAbsolutePath)) {
 			latestObjectID = uploadNewVersion(documentParentFolder, fileName, content, version);
-			System.out.println("Document has been updated having name:" + fileName);
 		} else {
 			latestObjectID = createDocument(documentParentFolder, fileName, content, version);
-			System.out.println("New document has been created having name:" + fileName);
 		}
-		return latestObjectID;
+		
+		CMISUploadResponse cmisUploadResponse = new CMISUploadResponse();
+		cmisUploadResponse.setSuccess(true);
+		cmisUploadResponse.setObjectID(latestObjectID);
+		
+		return cmisUploadResponse;
 	}
 
 	private Folder getDocumentParentFolder(String folderpath) {
@@ -93,7 +97,7 @@ public class UploadDocument {
 		return subFolder;
 	}
 	
-	boolean isCMISObjectExist(String path) {
+	private boolean isCMISObjectExist(String path) {
 		
 		try {
 			session.getObjectByPath(path);
