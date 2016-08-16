@@ -1,8 +1,12 @@
 package com.mps.cmis.client.wrapper.operations;
 
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -29,7 +33,7 @@ public class UploadDocument {
 		this.session = cmisSession.retrieveSession();
 	}
 
-	public CMISUploadResponse uploadDoc(String folderpath, String fileName, byte[] content, Version version) {
+	public CMISUploadResponse uploadDoc(String folderpath, String fileName, byte[] content, Version version) throws IOException {
 		String latestObjectID = null;
 
 		String fileAbsolutePath = folderpath + "/" + fileName; //put check if folder ends with slash or not, file name should end with some extension
@@ -107,12 +111,14 @@ public class UploadDocument {
 		}
 	}
 
-	private String createDocument(Folder folder, String fileName, byte[] content, Version version) {
+	private String createDocument(Folder folder, String fileName, byte[] content, Version version) throws IOException {
 		Map<String, Object> properties = new HashMap<String, Object>();
+		String fileMimeType=getFileMimeType(fileName);
 		properties.put(PropertyIds.OBJECT_TYPE_ID, "cmis:document");
 		properties.put(PropertyIds.NAME, fileName);
+		properties.put(PropertyIds.CONTENT_STREAM_MIME_TYPE,fileMimeType);
 		InputStream stream = new ByteArrayInputStream(content);
-		ContentStream contentStream = new ContentStreamImpl(fileName, BigInteger.valueOf(content.length), "text/plain",
+		ContentStream contentStream = new ContentStreamImpl(fileName, BigInteger.valueOf(content.length), fileMimeType,
 				stream);
 		Document newDoc = null;
 		try {
@@ -144,11 +150,19 @@ public class UploadDocument {
 			Document pwc = (Document) session.getObject(idOfCheckedOutDocument);
 			ByteArrayInputStream stream = new ByteArrayInputStream(content);
 			ContentStream contentStream = session.getObjectFactory().createContentStream(document.getName(),
-					Long.valueOf(content.length), "text/plain", stream);
+					Long.valueOf(content.length), document.getContentStreamMimeType(), stream);
 			boolean isMajorVersion = version.name().equals(Version.MAJOR.name());
 			objectId = pwc.checkIn(isMajorVersion, null, contentStream, version.name() + " changes");
 			
 		}
 		return objectId.getId();
-	}	
+	}
+	
+
+	public String getFileMimeType(String filePath) throws IOException {
+		String mimeType = null;
+		Path path = Paths.get(filePath);
+		mimeType = Files.probeContentType(path);
+		return mimeType;
+	}
 }

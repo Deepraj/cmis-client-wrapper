@@ -1,13 +1,15 @@
 package com.mps.cmis.client.wrapper.session;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 
 import org.apache.chemistry.opencmis.client.api.Session;
 import org.apache.chemistry.opencmis.client.api.SessionFactory;
 import org.apache.chemistry.opencmis.client.runtime.SessionFactoryImpl;
 import org.apache.chemistry.opencmis.commons.SessionParameter;
-import org.apache.chemistry.opencmis.commons.enums.BindingType;
 
 public class CMISSession {
 	
@@ -34,12 +36,12 @@ public class CMISSession {
 	private Session createSession() throws Exception {
 
 		Map<String, String> parameter = new HashMap<String, String>();
-		parameter.put(SessionParameter.USER, "admin");
-		parameter.put(SessionParameter.PASSWORD, "qwer1234$");
-		parameter.put(SessionParameter.BROWSER_URL,
-				"http://192.168.232.31:8080/alfresco/api/-default-/public/cmis/versions/1.1/browser");
-		parameter.put(SessionParameter.BINDING_TYPE, BindingType.BROWSER.value());
-		parameter.put(SessionParameter.REPOSITORY_ID, "-default-");
+		Properties cmisProperies=loadResources("cmisResources.properties");
+		parameter.put(SessionParameter.USER, cmisProperies.getProperty("cmis.session.User"));
+		parameter.put(SessionParameter.PASSWORD,cmisProperies.getProperty("cmis.session.Password"));
+		parameter.put(SessionParameter.BROWSER_URL,cmisProperies.getProperty("cmis.session.Browser_Url"));
+		parameter.put(SessionParameter.BINDING_TYPE,  cmisProperies.getProperty("cmis.session.Binding_Type"));
+		parameter.put(SessionParameter.REPOSITORY_ID,cmisProperies.getProperty("cmis.session.Repository_ID"));
 
 		try {
 			SessionFactory factory = SessionFactoryImpl.newInstance();
@@ -65,5 +67,20 @@ public class CMISSession {
 	}
 	
 	
+	public Properties loadResources(String propertyFile) throws Exception {
+
+		String fileAbsoultePath = getFileLocationFromClassPath(propertyFile);
+		FileInputStream input = new FileInputStream(fileAbsoultePath);
+		Properties properties = new Properties();
+		properties.load(input);
+		return properties;
+	}
+
+	public String getFileLocationFromClassPath(String propertyFileName)
+			throws Exception {
+		ClassLoader classLoader = getClass().getClassLoader();
+		File file = new File(classLoader.getResource(propertyFileName).getFile());
+		return file.getCanonicalPath();
+	}
 
 }

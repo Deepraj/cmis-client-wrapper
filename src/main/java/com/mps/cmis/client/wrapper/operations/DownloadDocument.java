@@ -1,14 +1,15 @@
 package com.mps.cmis.client.wrapper.operations;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
 import java.util.List;
 
 import org.apache.chemistry.opencmis.client.api.Document;
 import org.apache.chemistry.opencmis.client.api.Property;
 import org.apache.chemistry.opencmis.client.api.Session;
 import org.apache.chemistry.opencmis.commons.data.ContentStream;
+import org.apache.commons.io.IOUtils;
 
 import com.mps.cmis.client.wrapper.CMISDownloadResponse;
 import com.mps.cmis.client.wrapper.session.CMISSession;
@@ -21,13 +22,13 @@ public class DownloadDocument {
 		this.session = cmisSession.retrieveSession();
 	}
 
-	public CMISDownloadResponse downloadDoc(String folderPath, String fileName, String version) {
+	public CMISDownloadResponse downloadDoc(String folderPath, String fileName, String version) throws IOException {
 		
 		String path = folderPath + "/" + fileName;
 		Document doc = (Document) session.getObjectByPath(path);
 		String objectID = doc.getId();
 		objectID = createObjectId(objectID, version);
-		String content = download(objectID);
+		File content = download(objectID);
 		CMISDownloadResponse cmisDownloadResponse = new CMISDownloadResponse();
 		cmisDownloadResponse.setSuccess(true);	
 		cmisDownloadResponse.setContent(content);
@@ -42,7 +43,7 @@ public class DownloadDocument {
 		return newObjectID;
 	}
 
-	private String download(String objectID){
+	private File download(String objectID) throws IOException{
 	
 		Document doc = (Document) session.getObject(objectID);
 
@@ -54,39 +55,13 @@ public class DownloadDocument {
 		System.out.println("*********************************");
 		
 		ContentStream contentStream = doc.getContentStream();
-		String content = null;// returns null if the document has no content
-		if (contentStream != null) {
-			try {
-				content = getContentAsString(contentStream);
-			} catch (IOException e) {
-			}
-		} else {
-			System.out.println("No content.");
-		}
-		return content;
+		File file=new File(doc.getName());
+		FileOutputStream fileOutputStream=new FileOutputStream(file);
+		IOUtils.copy(contentStream.getStream(),fileOutputStream);
+		
+		
+		return file;
 	}	
-
-	private String getContentAsString(ContentStream stream) throws IOException {
-		StringBuilder sb = new StringBuilder();
-		Reader reader = new InputStreamReader(stream.getStream(), "UTF-8");
-
-		try {
-			final char[] buffer = new char[4 * 1024];
-			int b;
-			while (true) {
-				b = reader.read(buffer, 0, buffer.length);
-				if (b > 0) {
-					sb.append(buffer, 0, b);
-				} else if (b == -1) {
-					break;
-				}
-			}
-		} finally {
-			reader.close();
-		}
-
-		return sb.toString();
-	}
 	
 }
 
