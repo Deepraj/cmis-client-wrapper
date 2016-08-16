@@ -8,23 +8,36 @@ import com.mps.cmis.client.wrapper.enums.Version;
  */
 public class Main {
 	
-	static String path = "/Sites/cmis-wrapper/client7/documents/";
+	static String path = "/Sites/cmis-wrapper/client11/documents/";
 	static String fileName = "test.txt";
 	
 	
 	public static void main(String[] args) {
 
-		String objectID = Connector.uploadDocument(path, fileName, content(), Version.MAJOR);
-		System.out.println("Uploaded document object id is: "+ objectID);
+		CMISUploadRequest cmisUploadRequest = new CMISUploadRequest(path, fileName, content(), Version.MAJOR);
+		CMISUploadResponse cmisUploadResponse  = Connector.uploadDocument(cmisUploadRequest);
+		if(cmisUploadResponse.isSuccess()){
+			System.out.println("Uploaded object id is: "+ cmisUploadResponse.getObjectID());
+		}else{
+			System.out.println("Error message: "+ cmisUploadResponse.getErrorMessage());
+		}
+		
 		
 		System.out.println("************************************");
-		String content = Connector.downloadDocumant(path, fileName, "1.0");
-		System.out.println(content);
+		
+		CMISDownloadRequest cmisDownloadRequest = new CMISDownloadRequest(path, fileName, "26.0");
+		CMISDownloadResponse cmisDownloadResponse = Connector.downloadDocumant(cmisDownloadRequest);
+		if(cmisDownloadResponse.isSuccess()){
+			System.out.println("Content: "+cmisDownloadResponse.getContent());
+		}else{
+			System.out.println("Error message: "+ cmisDownloadResponse.getErrorMessage());
+		}
+		
 
 	}
 
 	private static byte[] content() {
-		String docText = "This is version 1.0";
+		String docText = "This is version 9.0";
 		byte[] content = docText.getBytes();
 		return content;
 	}
