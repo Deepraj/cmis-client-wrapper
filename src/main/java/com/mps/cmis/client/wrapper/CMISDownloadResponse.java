@@ -8,9 +8,15 @@ public class CMISDownloadResponse implements CMISResponse {
 	private File content;
 	private String objectID;
 	private String errorMessage;
-	
+	private Exception exception;
 	public boolean isSuccess() {
 		return isSuccess;
+	}
+	public Exception getException() {
+		return exception;
+	}
+	public void setException(Exception exception) {
+		this.exception = exception;
 	}
 	public void setSuccess(boolean isSuccess) {
 		this.isSuccess = isSuccess;

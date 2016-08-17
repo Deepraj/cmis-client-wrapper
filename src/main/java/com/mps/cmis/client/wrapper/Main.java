@@ -19,18 +19,18 @@ public class Main {
 		if(cmisUploadResponse.isSuccess()){
 			System.out.println("Uploaded object id is: "+ cmisUploadResponse.getObjectID());
 		}else{
-			System.out.println("Error message: "+ cmisUploadResponse.getErrorMessage());
+			System.out.println("Error message: "+ cmisUploadResponse.getException());
 		}
 		
 		
 		System.out.println("************************************");
 		
-		CMISDownloadRequest cmisDownloadRequest = new CMISDownloadRequest(path, fileName, "26.0");
+		CMISDownloadRequest cmisDownloadRequest = new CMISDownloadRequest(path, fileName, "6.0");
 		CMISDownloadResponse cmisDownloadResponse = Connector.downloadDocumant(cmisDownloadRequest);
 		if(cmisDownloadResponse.isSuccess()){
 			System.out.println("Content: "+cmisDownloadResponse.getContent());
 		}else{
-			System.out.println("Error message: "+ cmisDownloadResponse.getErrorMessage());
+			System.out.println("Error message: "+ cmisDownloadResponse.getException());
 		}
 		
 
