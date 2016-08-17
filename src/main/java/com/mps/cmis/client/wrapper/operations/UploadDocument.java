@@ -20,6 +20,7 @@ import org.apache.chemistry.opencmis.commons.enums.VersioningState;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisContentAlreadyExistsException;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisObjectNotFoundException;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.ContentStreamImpl;
+import org.apache.log4j.Logger;
 
 import com.mps.cmis.client.wrapper.CMISUploadResponse;
 import com.mps.cmis.client.wrapper.enums.Version;
@@ -27,6 +28,7 @@ import com.mps.cmis.client.wrapper.session.CMISSession;
 
 public class UploadDocument {
 
+	static Logger LOGGER = Logger.getLogger(UploadDocument.class);
 	private Session session;
 
 	public UploadDocument(CMISSession cmisSession) throws Exception {
@@ -71,6 +73,7 @@ public class UploadDocument {
 			Folder folder = (Folder) session.getObjectByPath(folderpath);
 			return folder;
 		} catch (CmisObjectNotFoundException onfe) {
+			LOGGER.error("Error in checking existence of path i.e"+folderpath+" results:" +""+onfe);
 			Folder subFolder = null;
 			int endIndex = folderpath.lastIndexOf("/");
 			if (endIndex != -1) {
@@ -90,12 +93,14 @@ public class UploadDocument {
 			subFolder = (Folder) cmisSession.getObjectByPath(folder.getPath() + "/" + folderName);
 			System.out.println("Folder already existed!");
 		} catch (CmisObjectNotFoundException onfe) {
+			LOGGER.error("Error in getting the required destination folder :" +onfe);
 			Map<String, Object> props = new HashMap<String, Object>();
 			props.put("cmis:objectTypeId", "cmis:folder");
 			props.put("cmis:name", folderName);
 			subFolder = folder.createFolder(props);
 			String subFolderId = subFolder.getId();
 			System.out.println("Created new folder: " + subFolderId);
+			LOGGER.info("************Directory Structure created*******");
 		}
 
 		return subFolder;
@@ -107,6 +112,7 @@ public class UploadDocument {
 			session.getObjectByPath(path);
 			return true;
 		} catch (CmisObjectNotFoundException onfe) {
+			LOGGER.error("Exception in checking if Cmis Object exist:"+onfe);
 			return false;
 		}
 	}
@@ -124,7 +130,9 @@ public class UploadDocument {
 		try {
 			VersioningState versioningState = version.equals(Version.MAJOR) ? VersioningState.MAJOR : VersioningState.MINOR ;
 			newDoc = folder.createDocument(properties, contentStream, versioningState);
+			LOGGER.info("New document has been created with object ID:"+newDoc.getId());
 		} catch (CmisContentAlreadyExistsException ccaee) {
+			LOGGER.error("Error in creating document as :"+ccaee);
 			newDoc = (Document) this.session.getObjectByPath(folder.getPath() + "/" + fileName);
 		}
 		return newDoc.getId();
@@ -153,16 +161,18 @@ public class UploadDocument {
 					Long.valueOf(content.length), document.getContentStreamMimeType(), stream);
 			boolean isMajorVersion = version.name().equals(Version.MAJOR.name());
 			objectId = pwc.checkIn(isMajorVersion, null, contentStream, version.name() + " changes");
+			LOGGER.info("Document has been updated,New Object ID is:"+objectId.getId());
 			
 		}
 		return objectId.getId();
 	}
 	
 
-	public String getFileMimeType(String filePath) throws IOException {
+	public String getFileMimeType(String fileName) throws IOException {
 		String mimeType = null;
-		Path path = Paths.get(filePath);
+		Path path = Paths.get(fileName);
 		mimeType = Files.probeContentType(path);
+		LOGGER.info("Mimetype for the file"+fileName+"is"+mimeType);
 		return mimeType;
 	}
 }

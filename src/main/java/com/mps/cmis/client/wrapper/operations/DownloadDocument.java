@@ -10,12 +10,13 @@ import org.apache.chemistry.opencmis.client.api.Property;
 import org.apache.chemistry.opencmis.client.api.Session;
 import org.apache.chemistry.opencmis.commons.data.ContentStream;
 import org.apache.commons.io.IOUtils;
+import org.apache.log4j.Logger;
 
 import com.mps.cmis.client.wrapper.CMISDownloadResponse;
 import com.mps.cmis.client.wrapper.session.CMISSession;
 
 public class DownloadDocument {
-
+	static Logger LOGGER = Logger.getLogger(DownloadDocument.class);
 	private Session session;
 
 	public DownloadDocument(CMISSession cmisSession) throws Exception {
@@ -40,6 +41,7 @@ public class DownloadDocument {
 		String newObjectID = null;
 		String[] splittedObjectID = previousId.split(";");
 		newObjectID = splittedObjectID[0] + ";" + version;
+		LOGGER.info("Download the document having object ID:"+newObjectID);
 		return newObjectID;
 	}
 
@@ -47,18 +49,19 @@ public class DownloadDocument {
 	
 		Document doc = (Document) session.getObject(objectID);
 
-		System.out.println("*********************************");
+		LOGGER.info("**********Properties of downloading document**************");
 		List<Property<?>> props = doc.getProperties();
 		for (Property<?> p : props) {
 			System.out.println(p.getDefinition().getDisplayName() + "=" + p.getValuesAsString());
+			LOGGER.info(p.getDefinition().getDisplayName() + "=" + p.getValuesAsString());
 		}
-		System.out.println("*********************************");
+		LOGGER.info("***********Properties Ends*************");
 		
 		ContentStream contentStream = doc.getContentStream();
 		File file=new File(doc.getName());
 		FileOutputStream fileOutputStream=new FileOutputStream(file);
 		IOUtils.copy(contentStream.getStream(),fileOutputStream);
-		
+		LOGGER.info("Doument has been downloaded having name:"+doc.getName());
 		
 		return file;
 	}	

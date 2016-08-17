@@ -10,9 +10,10 @@ import org.apache.chemistry.opencmis.client.api.Session;
 import org.apache.chemistry.opencmis.client.api.SessionFactory;
 import org.apache.chemistry.opencmis.client.runtime.SessionFactoryImpl;
 import org.apache.chemistry.opencmis.commons.SessionParameter;
+import org.apache.log4j.Logger;
 
 public class CMISSession {
-	
+	static Logger LOGGER = Logger.getLogger(CMISSession.class);
 	private static CMISSession singletonInstance;
 
 	public static CMISSession getInstance() throws Exception{
@@ -30,12 +31,14 @@ public class CMISSession {
 	private Session session;
 	
 	private CMISSession() throws Exception{
+		LOGGER.info("Creating the session for Cmis Repository");
 		session = createSession();
 	}
 	
 	private Session createSession() throws Exception {
 
 		Map<String, String> parameter = new HashMap<String, String>();
+		LOGGER.info("********Create Session***********");
 		Properties cmisProperies=loadResources("cmisResources.properties");
 		parameter.put(SessionParameter.USER, cmisProperies.getProperty("cmis.session.User"));
 		parameter.put(SessionParameter.PASSWORD,cmisProperies.getProperty("cmis.session.Password"));
@@ -46,8 +49,10 @@ public class CMISSession {
 		try {
 			SessionFactory factory = SessionFactoryImpl.newInstance();
 			session = factory.createSession(parameter);
+			LOGGER.info("*******Session successfully created*******");
 			session.getDefaultContext().setCacheEnabled(false);
 		} catch (Exception ex) {
+			LOGGER.error("-----Error in creating session-----:"+ex);
 			session = null;
 			throw new Exception(ex);
 		}
@@ -73,6 +78,7 @@ public class CMISSession {
 		FileInputStream input = new FileInputStream(fileAbsoultePath);
 		Properties properties = new Properties();
 		properties.load(input);
+		LOGGER.info("Retrieving the properties from file:"+propertyFile);
 		return properties;
 	}
 
