@@ -1,51 +1,63 @@
 package com.mps.cmis.client.wrapper.session;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 
 import org.apache.chemistry.opencmis.client.api.Session;
 import org.apache.chemistry.opencmis.client.api.SessionFactory;
 import org.apache.chemistry.opencmis.client.runtime.SessionFactoryImpl;
 import org.apache.chemistry.opencmis.commons.SessionParameter;
-import org.apache.chemistry.opencmis.commons.enums.BindingType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 public class CMISSession {
-	
-	private static CMISSession singletonInstance;
+	static Logger LOGGER = LoggerFactory.getLogger(CMISSession.class);
+	private static CMISSession cmisSessionSingletonInstance;
 
 	public static CMISSession getInstance() throws Exception{
 		
-		if(singletonInstance == null){
+		if(cmisSessionSingletonInstance == null){
 	        synchronized (CMISSession.class) {
-	            if(singletonInstance == null){
-	            	singletonInstance = new CMISSession();
+	            if(cmisSessionSingletonInstance == null){
+	            	cmisSessionSingletonInstance = new CMISSession();
 	            }
 	        }
 	    }
-	    return singletonInstance;		
+	    return cmisSessionSingletonInstance;		
 	}
 	
 	private Session session;
 	
 	private CMISSession() throws Exception{
+		LOGGER.info("Creating the session for Cmis Repository");
 		session = createSession();
 	}
 	
 	private Session createSession() throws Exception {
 
 		Map<String, String> parameter = new HashMap<String, String>();
-		parameter.put(SessionParameter.USER, "admin");
-		parameter.put(SessionParameter.PASSWORD, "qwer1234$");
-		parameter.put(SessionParameter.BROWSER_URL,
-				"http://192.168.232.31:8080/alfresco/api/-default-/public/cmis/versions/1.1/browser");
-		parameter.put(SessionParameter.BINDING_TYPE, BindingType.BROWSER.value());
-		parameter.put(SessionParameter.REPOSITORY_ID, "-default-");
+		LOGGER.info("********Create Session***********");
+		
+		Properties cmisProperies = loadResources("cmisResources.properties");
+		parameter.put(SessionParameter.USER, cmisProperies.getProperty("cmis.session.user"));
+		parameter.put(SessionParameter.PASSWORD,cmisProperies.getProperty("cmis.session.password"));
+		parameter.put(SessionParameter.BROWSER_URL,cmisProperies.getProperty("cmis.session.browser.url"));
+		parameter.put(SessionParameter.BINDING_TYPE,  cmisProperies.getProperty("cmis.session.binding.type"));
+		parameter.put(SessionParameter.REPOSITORY_ID,cmisProperies.getProperty("cmis.session.repository.id"));
+		parameter.put(SessionParameter.CONNECT_TIMEOUT,cmisProperies.getProperty("cmis.session.connect.timeout"));
+		parameter.put(SessionParameter.READ_TIMEOUT, cmisProperies.getProperty("cmis.session.read.timeout"));
 
 		try {
 			SessionFactory factory = SessionFactoryImpl.newInstance();
 			session = factory.createSession(parameter);
+			LOGGER.info("*******Session successfully created*******");
 			session.getDefaultContext().setCacheEnabled(false);
 		} catch (Exception ex) {
+			LOGGER.error("*****Error in creating session*****: "+ex);
 			session = null;
 			throw new Exception(ex);
 		}
@@ -55,7 +67,7 @@ public class CMISSession {
 	public Session retrieveSession() throws Exception {
 		
 		if(session == null){
-			synchronized (singletonInstance) {
+			synchronized (cmisSessionSingletonInstance) {
 				if(session == null){
 					session = createSession();
 				}				
@@ -65,5 +77,22 @@ public class CMISSession {
 	}
 	
 	
+	private Properties loadResources(String propertyFile) throws Exception {
+		
+		LOGGER.info("Retrieving the connection properties from file: "+propertyFile);
+		String fileAbsoultePath = getFileLocationFromClassPath(propertyFile);
+		FileInputStream input = new FileInputStream(fileAbsoultePath);
+		Properties properties = new Properties();
+		properties.load(input);	
+		LOGGER.info("Properties file: "+propertyFile+ " loaded successfully.");
+		return properties;
+	}
+
+	private String getFileLocationFromClassPath(String propertyFileName)
+			throws Exception {
+		ClassLoader classLoader = getClass().getClassLoader();
+		File file = new File(classLoader.getResource(propertyFileName).getFile());
+		return file.getCanonicalPath();
+	}
 
 }

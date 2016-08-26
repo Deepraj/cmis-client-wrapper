@@ -5,7 +5,15 @@ public class CMISUploadResponse implements CMISResponse {
 	private boolean isSuccess;
 	private String objectID;
 	private String errorMessage;
+	private Exception exception;
 
+	
+	public void setException(Exception exception) {
+		this.exception = exception;
+	}
+	public Exception getException() {
+		return exception;
+	}
 	
 	public boolean isSuccess() {
 		return isSuccess;
