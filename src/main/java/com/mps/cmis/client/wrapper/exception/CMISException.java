@@ -1,16 +1,16 @@
 package com.mps.cmis.client.wrapper.exception;
 
-public class ContentException extends Exception {
+public class CMISException extends Exception {
 
 	private static final long serialVersionUID = 1L;
 	private String message = null;
 	private Exception exception = null;
 
-	public ContentException() {
+	public CMISException() {
 		super();
 	}
 
-	public ContentException(String message, Exception exception) {
+	public CMISException(String message, Exception exception) {
 		super(message, exception);
 		this.message = message;
 		this.exception = exception;

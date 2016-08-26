@@ -10,22 +10,24 @@ import org.apache.chemistry.opencmis.client.api.Session;
 import org.apache.chemistry.opencmis.client.api.SessionFactory;
 import org.apache.chemistry.opencmis.client.runtime.SessionFactoryImpl;
 import org.apache.chemistry.opencmis.commons.SessionParameter;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 
 public class CMISSession {
-	static Logger LOGGER = Logger.getLogger(CMISSession.class);
-	private static CMISSession singletonInstance;
+	static Logger LOGGER = LoggerFactory.getLogger(CMISSession.class);
+	private static CMISSession cmisSessionSingletonInstance;
 
 	public static CMISSession getInstance() throws Exception{
 		
-		if(singletonInstance == null){
+		if(cmisSessionSingletonInstance == null){
 	        synchronized (CMISSession.class) {
-	            if(singletonInstance == null){
-	            	singletonInstance = new CMISSession();
+	            if(cmisSessionSingletonInstance == null){
+	            	cmisSessionSingletonInstance = new CMISSession();
 	            }
 	        }
 	    }
-	    return singletonInstance;		
+	    return cmisSessionSingletonInstance;		
 	}
 	
 	private Session session;
@@ -39,12 +41,15 @@ public class CMISSession {
 
 		Map<String, String> parameter = new HashMap<String, String>();
 		LOGGER.info("********Create Session***********");
-		Properties cmisProperies=loadResources("cmisResources.properties");
-		parameter.put(SessionParameter.USER, cmisProperies.getProperty("cmis.session.User"));
-		parameter.put(SessionParameter.PASSWORD,cmisProperies.getProperty("cmis.session.Password"));
-		parameter.put(SessionParameter.BROWSER_URL,cmisProperies.getProperty("cmis.session.Browser_Url"));
-		parameter.put(SessionParameter.BINDING_TYPE,  cmisProperies.getProperty("cmis.session.Binding_Type"));
-		parameter.put(SessionParameter.REPOSITORY_ID,cmisProperies.getProperty("cmis.session.Repository_ID"));
+		
+		Properties cmisProperies = loadResources("cmisResources.properties");
+		parameter.put(SessionParameter.USER, cmisProperies.getProperty("cmis.session.user"));
+		parameter.put(SessionParameter.PASSWORD,cmisProperies.getProperty("cmis.session.password"));
+		parameter.put(SessionParameter.BROWSER_URL,cmisProperies.getProperty("cmis.session.browser.url"));
+		parameter.put(SessionParameter.BINDING_TYPE,  cmisProperies.getProperty("cmis.session.binding.type"));
+		parameter.put(SessionParameter.REPOSITORY_ID,cmisProperies.getProperty("cmis.session.repository.id"));
+		parameter.put(SessionParameter.CONNECT_TIMEOUT,cmisProperies.getProperty("cmis.session.connect.timeout"));
+		parameter.put(SessionParameter.READ_TIMEOUT, cmisProperies.getProperty("cmis.session.read.timeout"));
 
 		try {
 			SessionFactory factory = SessionFactoryImpl.newInstance();
@@ -52,7 +57,7 @@ public class CMISSession {
 			LOGGER.info("*******Session successfully created*******");
 			session.getDefaultContext().setCacheEnabled(false);
 		} catch (Exception ex) {
-			LOGGER.error("-----Error in creating session-----:"+ex);
+			LOGGER.error("*****Error in creating session*****: "+ex);
 			session = null;
 			throw new Exception(ex);
 		}
@@ -62,7 +67,7 @@ public class CMISSession {
 	public Session retrieveSession() throws Exception {
 		
 		if(session == null){
-			synchronized (singletonInstance) {
+			synchronized (cmisSessionSingletonInstance) {
 				if(session == null){
 					session = createSession();
 				}				
@@ -72,17 +77,18 @@ public class CMISSession {
 	}
 	
 	
-	public Properties loadResources(String propertyFile) throws Exception {
-
+	private Properties loadResources(String propertyFile) throws Exception {
+		
+		LOGGER.info("Retrieving the connection properties from file: "+propertyFile);
 		String fileAbsoultePath = getFileLocationFromClassPath(propertyFile);
 		FileInputStream input = new FileInputStream(fileAbsoultePath);
 		Properties properties = new Properties();
-		properties.load(input);
-		LOGGER.info("Retrieving the properties from file:"+propertyFile);
+		properties.load(input);	
+		LOGGER.info("Properties file: "+propertyFile+ " loaded successfully.");
 		return properties;
 	}
 
-	public String getFileLocationFromClassPath(String propertyFileName)
+	private String getFileLocationFromClassPath(String propertyFileName)
 			throws Exception {
 		ClassLoader classLoader = getClass().getClassLoader();
 		File file = new File(classLoader.getResource(propertyFileName).getFile());
