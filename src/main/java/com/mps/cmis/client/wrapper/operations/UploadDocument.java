@@ -20,20 +20,35 @@ import org.apache.chemistry.opencmis.commons.enums.VersioningState;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisContentAlreadyExistsException;
 import org.apache.chemistry.opencmis.commons.exceptions.CmisObjectNotFoundException;
 import org.apache.chemistry.opencmis.commons.impl.dataobjects.ContentStreamImpl;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.mps.cmis.client.wrapper.CMISUploadResponse;
 import com.mps.cmis.client.wrapper.enums.Version;
 import com.mps.cmis.client.wrapper.session.CMISSession;
 
 public class UploadDocument {
-
-	static Logger LOGGER = Logger.getLogger(UploadDocument.class);
+	
+	private final static Logger LOGGER = LoggerFactory.getLogger(UploadDocument.class);
+	private static UploadDocument uploadDocumentSingletonInstance;
 	private Session session;
 
-	public UploadDocument(CMISSession cmisSession) throws Exception {
+	public static UploadDocument getInstance(CMISSession cmisSession) throws Exception {
+
+		if (uploadDocumentSingletonInstance == null) {
+			synchronized (UploadDocument.class) {
+				if (uploadDocumentSingletonInstance == null) {
+					uploadDocumentSingletonInstance = new UploadDocument(cmisSession);
+				}
+			}
+		}
+		return uploadDocumentSingletonInstance;
+	}
+
+	private UploadDocument(CMISSession cmisSession) throws Exception {
 		this.session = cmisSession.retrieveSession();
 	}
+
 
 	public CMISUploadResponse uploadDoc(String folderpath, String fileName, byte[] content, Version version) throws IOException {
 		String latestObjectID = null;
@@ -73,7 +88,7 @@ public class UploadDocument {
 			Folder folder = (Folder) session.getObjectByPath(folderpath);
 			return folder;
 		} catch (CmisObjectNotFoundException onfe) {
-			LOGGER.error("Error in checking existence of path i.e"+folderpath+" results:" +""+onfe);
+			LOGGER.error("Following folderpath i.e" + folderpath + " does not exist: " +onfe);
 			Folder subFolder = null;
 			int endIndex = folderpath.lastIndexOf("/");
 			if (endIndex != -1) {
@@ -84,25 +99,21 @@ public class UploadDocument {
 		}
 	}
 
-	private Folder getFolder(String parentFolderId, String folderName) {
+	private synchronized Folder getFolder(String parentFolderId, String folderName) {
 		Session cmisSession = session;
 		Folder folder = (Folder) cmisSession.getObject(parentFolderId);
 
 		Folder subFolder = null;
 		try {
 			subFolder = (Folder) cmisSession.getObjectByPath(folder.getPath() + "/" + folderName);
-			System.out.println("Folder already existed!");
 		} catch (CmisObjectNotFoundException onfe) {
 			LOGGER.error("Error in getting the required destination folder :" +onfe);
 			Map<String, Object> props = new HashMap<String, Object>();
 			props.put("cmis:objectTypeId", "cmis:folder");
 			props.put("cmis:name", folderName);
 			subFolder = folder.createFolder(props);
-			String subFolderId = subFolder.getId();
-			System.out.println("Created new folder: " + subFolderId);
-			LOGGER.info("************Directory Structure created*******");
+			LOGGER.info("Folder created successfully: ");
 		}
-
 		return subFolder;
 	}
 	
@@ -112,17 +123,19 @@ public class UploadDocument {
 			session.getObjectByPath(path);
 			return true;
 		} catch (CmisObjectNotFoundException onfe) {
-			LOGGER.error("Exception in checking if Cmis Object exist:"+onfe);
 			return false;
 		}
 	}
 
 	private String createDocument(Folder folder, String fileName, byte[] content, Version version) throws IOException {
-		Map<String, Object> properties = new HashMap<String, Object>();
-		String fileMimeType=getFileMimeType(fileName);
+		
+		String fileMimeType = getFileMimeType(fileName);
+		
+		Map<String, Object> properties = new HashMap<String, Object>();		
 		properties.put(PropertyIds.OBJECT_TYPE_ID, "cmis:document");
 		properties.put(PropertyIds.NAME, fileName);
 		properties.put(PropertyIds.CONTENT_STREAM_MIME_TYPE,fileMimeType);
+		
 		InputStream stream = new ByteArrayInputStream(content);
 		ContentStream contentStream = new ContentStreamImpl(fileName, BigInteger.valueOf(content.length), fileMimeType,
 				stream);
@@ -130,10 +143,10 @@ public class UploadDocument {
 		try {
 			VersioningState versioningState = version.equals(Version.MAJOR) ? VersioningState.MAJOR : VersioningState.MINOR ;
 			newDoc = folder.createDocument(properties, contentStream, versioningState);
-			LOGGER.info("New document has been created with object ID:"+newDoc.getId());
+			LOGGER.info("New document has been created with name: "+newDoc.getName()+"with version"+newDoc.getVersionLabel()+"at location:"+folder+"having object ID"+ newDoc.getId());
 		} catch (CmisContentAlreadyExistsException ccaee) {
-			LOGGER.error("Error in creating document as :"+ccaee);
-			newDoc = (Document) this.session.getObjectByPath(folder.getPath() + "/" + fileName);
+			LOGGER.error("Error in creating document with name: "+newDoc.getName()+"with version"+newDoc.getVersionLabel()+"at location:"+folder +ccaee);
+			return uploadNewVersion(folder, fileName, content, version);
 		}
 		return newDoc.getId();
 
@@ -141,16 +154,20 @@ public class UploadDocument {
 	
 	private String uploadNewVersion(Folder folder, String fileName, byte[] content, Version version) {
 		
-		String objectId = null;
 		String filePath = folder.getPath() + "/" + fileName;
-		Document document = (Document) session.getObjectByPath(filePath);
-		objectId = upload(document, content, version);
-		return objectId;
+	
+		synchronized (this) {
+			String objectId = null;
+			objectId = upload(folder, fileName, content, version);
+			return objectId;
+		}
 	}
 	
-	private String upload(Document document, byte[] content, Version version ) {
+	private String upload(Folder folder, String fileName, byte[] content, Version version ) {
 		
 		ObjectId objectId = null;
+		String filePath = folder.getPath() + "/" + fileName;
+		Document document = (Document) session.getObjectByPath(filePath);
 		
 		if (document.getAllowableActions().getAllowableActions()
 				.contains(org.apache.chemistry.opencmis.commons.enums.Action.CAN_CHECK_OUT)) {
@@ -161,7 +178,7 @@ public class UploadDocument {
 					Long.valueOf(content.length), document.getContentStreamMimeType(), stream);
 			boolean isMajorVersion = version.name().equals(Version.MAJOR.name());
 			objectId = pwc.checkIn(isMajorVersion, null, contentStream, version.name() + " changes");
-			LOGGER.info("Document has been updated,New Object ID is:"+objectId.getId());
+			LOGGER.info("Document has been updated with name:"+fileName+"at location"+folder +"New Object ID is:"+objectId.getId());
 			
 		}
 		return objectId.getId();
@@ -172,7 +189,6 @@ public class UploadDocument {
 		String mimeType = null;
 		Path path = Paths.get(fileName);
 		mimeType = Files.probeContentType(path);
-		LOGGER.info("Mimetype for the file"+fileName+"is"+mimeType);
 		return mimeType;
 	}
 }

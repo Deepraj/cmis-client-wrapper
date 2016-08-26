@@ -10,16 +10,32 @@ import org.apache.chemistry.opencmis.client.api.Property;
 import org.apache.chemistry.opencmis.client.api.Session;
 import org.apache.chemistry.opencmis.commons.data.ContentStream;
 import org.apache.commons.io.IOUtils;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.mps.cmis.client.wrapper.CMISDownloadResponse;
 import com.mps.cmis.client.wrapper.session.CMISSession;
 
 public class DownloadDocument {
-	static Logger LOGGER = Logger.getLogger(DownloadDocument.class);
+	private final static Logger LOGGER = LoggerFactory.getLogger(DownloadDocument.class);
+
+	private static DownloadDocument downloadDocumentSingletonInstance;
+
+	public static DownloadDocument getInstance(CMISSession cmisSession) throws Exception {
+
+		if (downloadDocumentSingletonInstance == null) {
+			synchronized (UploadDocument.class) {
+				if (downloadDocumentSingletonInstance == null) {
+					downloadDocumentSingletonInstance = new DownloadDocument(cmisSession);
+				}
+			}
+		}
+		return downloadDocumentSingletonInstance;
+	}
+
 	private Session session;
 
-	public DownloadDocument(CMISSession cmisSession) throws Exception {
+	private DownloadDocument(CMISSession cmisSession) throws Exception {
 		this.session = cmisSession.retrieveSession();
 	}
 
@@ -52,7 +68,6 @@ public class DownloadDocument {
 		LOGGER.info("**********Properties of downloading document**************");
 		List<Property<?>> props = doc.getProperties();
 		for (Property<?> p : props) {
-			System.out.println(p.getDefinition().getDisplayName() + "=" + p.getValuesAsString());
 			LOGGER.info(p.getDefinition().getDisplayName() + "=" + p.getValuesAsString());
 		}
 		LOGGER.info("***********Properties Ends*************");
@@ -61,7 +76,7 @@ public class DownloadDocument {
 		File file=new File(doc.getName());
 		FileOutputStream fileOutputStream=new FileOutputStream(file);
 		IOUtils.copy(contentStream.getStream(),fileOutputStream);
-		LOGGER.info("Doument has been downloaded having name:"+doc.getName());
+		LOGGER.info("Document has been downloaded having name:"+doc.getName()+"with object ID:"+doc.getId());
 		
 		return file;
 	}	
