@@ -22,9 +22,9 @@ public class Connector {
 			try {
 				cmisSession = CMISSession.getInstance();
 			} catch (Exception ex) {
-				LOGGER.error("Connection to repository refused: " +ex);
+				LOGGER.error("Cann't connect to CMIS repository, because of following exception: ", ex);
 				cmisUploadResponse = new CMISUploadResponse();
-				CMISException connectionException = new CMISException("Cann't connect to CMIS repository, because of following exception: ",ex);
+				CMISException connectionException = new CMISException("Cann't connect to CMIS repository, because of following exception: ", ex);
 				cmisUploadResponse.setException(connectionException);
 				return cmisUploadResponse;
 			}
@@ -33,9 +33,8 @@ public class Connector {
 			UploadDocument uploadDocument = UploadDocument.getInstance(cmisSession);
 			cmisUploadResponse  = uploadDocument.uploadDoc(cmisRequest.getFolderpath(), cmisRequest.getFileName(), cmisRequest.getContent(), cmisRequest.getVersion());
 		} catch (Exception ex) {
-			LOGGER.error("Error in uploading "+cmisRequest.getFileName()+"at path "+cmisRequest.getFolderpath()+"with version "+cmisRequest.getVersion() +ex);
 			cmisUploadResponse = new CMISUploadResponse();
-			CMISException contentUploadException=new CMISException("Error in uploading "+cmisRequest.getFileName()+"at path "+cmisRequest.getFolderpath()+"with version "+cmisRequest.getVersion(),ex);
+			CMISException contentUploadException=new CMISException("Error in uploading "+cmisRequest.getFileName()+" at path "+cmisRequest.getFolderpath()+" with version "+cmisRequest.getVersion(),ex);
 			cmisUploadResponse.setException(contentUploadException);
 			return cmisUploadResponse;
 		}
@@ -49,9 +48,9 @@ public class Connector {
 			try {
 				cmisSession = CMISSession.getInstance();
 			} catch (Exception ex) {
-				LOGGER.error("Connection to repoitory is refused on downloading the document:" +ex);
+				LOGGER.error("Cann't connect to CMIS repository, because of following exception: ", ex);
 				cmisDownloadResponse = new CMISDownloadResponse();
-				CMISException connectionException=new CMISException("Cann't connect to CMIS repository, because of following exception:"+"",ex);
+				CMISException connectionException=new CMISException("Cann't connect to CMIS repository, because of following exception: ",ex);
 				cmisDownloadResponse.setException(connectionException);
 				return cmisDownloadResponse;
 			}
@@ -60,9 +59,9 @@ public class Connector {
 			DownloadDocument downloadDocument = DownloadDocument.getInstance(cmisSession);
 			cmisDownloadResponse = downloadDocument.downloadDoc(cmisDownloadRequest.getFolderPath(), cmisDownloadRequest.getFileName(), cmisDownloadRequest.getVersion());
 		} catch (Exception ex) {
-			LOGGER.error("Error in downloading the content, name: "+cmisDownloadRequest.getFileName()+" from path"+cmisDownloadRequest.getFolderPath()+"with version"+cmisDownloadRequest.getVersion()+ex);
+			LOGGER.error("Error in downloading the file: "+cmisDownloadRequest.getFileName()+" from path: "+cmisDownloadRequest.getFolderPath()+" with version: "+cmisDownloadRequest.getVersion(), ex);
 			cmisDownloadResponse = new CMISDownloadResponse();
-			CMISException contentDownloadException=new CMISException("Error in downloading the content, name: "+cmisDownloadRequest.getFileName()+" from path"+cmisDownloadRequest.getFolderPath()+"with version"+cmisDownloadRequest.getVersion(),ex);
+			CMISException contentDownloadException=new CMISException("Error in downloading the file: "+cmisDownloadRequest.getFileName()+" from path: "+cmisDownloadRequest.getFolderPath()+" with version: "+cmisDownloadRequest.getVersion(), ex);
 			cmisDownloadResponse.setException(contentDownloadException);
 			return cmisDownloadResponse;
 		}

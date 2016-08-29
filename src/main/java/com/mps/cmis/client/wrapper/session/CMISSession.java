@@ -33,13 +33,14 @@ public class CMISSession {
 	private Session session;
 	
 	private CMISSession() throws Exception{
-		LOGGER.info("Creating the session for Cmis Repository");
+		
 		session = createSession();
 	}
 	
 	private Session createSession() throws Exception {
 
 		Map<String, String> parameter = new HashMap<String, String>();
+		LOGGER.info("Creating the session for CMIS Repository");
 		LOGGER.info("********Create Session***********");
 		
 		Properties cmisProperies = loadResources("cmisResources.properties");
@@ -54,10 +55,10 @@ public class CMISSession {
 		try {
 			SessionFactory factory = SessionFactoryImpl.newInstance();
 			session = factory.createSession(parameter);
-			LOGGER.info("*******Session successfully created*******");
+			LOGGER.info("******* CMIS Session created successfully *******");
 			session.getDefaultContext().setCacheEnabled(false);
 		} catch (Exception ex) {
-			LOGGER.error("*****Error in creating session*****: "+ex);
+			LOGGER.error("*****Error in creating CMIS session *****: ",ex);
 			session = null;
 			throw new Exception(ex);
 		}
