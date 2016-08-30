@@ -1,11 +1,9 @@
 package com.mps.cmis.client.wrapper;
 
-import java.io.File;
-
 public class CMISDownloadResponse implements CMISResponse {
 	
 	private boolean isSuccess;
-	private File content;
+	private byte[] content;
 	private String objectID;
 	private String errorMessage;
 	private Exception exception;
@@ -21,12 +19,7 @@ public class CMISDownloadResponse implements CMISResponse {
 	public void setSuccess(boolean isSuccess) {
 		this.isSuccess = isSuccess;
 	}
-	public File getContent() {
-		return content;
-	}
-	public void setContent(File content) {
-		this.content = content;
-	}
+	
 	public String getErrorMessage() {
 		return errorMessage;
 	}
@@ -38,8 +31,12 @@ public class CMISDownloadResponse implements CMISResponse {
 	}
 	public void setObjectID(String objectID) {
 		this.objectID = objectID;
+	}	
+	public byte[] getContent() {
+		return content;
 	}
-	
-	
+	public void setContent(byte[] content) {
+		this.content = content;
+	}
 	
 }

@@ -1,9 +1,9 @@
 package com.mps.cmis.client.wrapper.exception;
 
-@SuppressWarnings("serial")
+
 public class CMISException extends Exception {
 
-	
+	private static final long serialVersionUID = 1L;
 	private String message = null;
 	private Exception exception = null;
 	

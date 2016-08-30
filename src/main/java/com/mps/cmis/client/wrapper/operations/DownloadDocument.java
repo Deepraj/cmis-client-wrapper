@@ -3,6 +3,7 @@ package com.mps.cmis.client.wrapper.operations;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 import org.apache.chemistry.opencmis.client.api.Document;
 import org.apache.chemistry.opencmis.client.api.Session;
@@ -42,7 +43,7 @@ public class DownloadDocument {
 		String path = getFilePath(folderPath, fileName);
 		Document doc = getAppropriateDocument(version,path);
 		LOGGER.info("Downloading the file having name: "+fileName+" from location: "+folderPath+" with objectId "+doc.getId());
-		File content = download(doc);	
+		byte[] content = download(doc);	
 		CMISDownloadResponse cmisDownloadResponse = new CMISDownloadResponse();
 		cmisDownloadResponse.setSuccess(true);	
 		cmisDownloadResponse.setContent(content);
@@ -58,15 +59,13 @@ public class DownloadDocument {
 		return newObjectID;
 	}
 
-	private File download(Document doc) throws IOException{
+	private byte[] download(Document doc) throws IOException{
 		
 		ContentStream contentStream = doc.getContentStream();
-		File file=new File(doc.getName());
-		FileOutputStream fileOutputStream=new FileOutputStream("");
-		IOUtils.copy(contentStream.getStream(),fileOutputStream);
-		LOGGER.info("File Object For the requested Document: "+file.getName() +" has been returned.");
-		
-		return file;
+		byte[] content=getContentInBytes(contentStream.getStream());
+		LOGGER.info("Byte data For the requested Document: "+doc.getName() +" has been returned.");
+
+		return content;
 	}	
 		
 	private String getFilePath(String folderpath, String fileName){
@@ -93,6 +92,11 @@ public class DownloadDocument {
 		}
 		return doc;
 
+	}
+	
+	private static byte[] getContentInBytes(InputStream inputStream) throws IOException {
+		byte[] content = IOUtils.toByteArray(inputStream);
+		return content;
 	}
 }
 
