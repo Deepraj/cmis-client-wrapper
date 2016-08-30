@@ -76,7 +76,7 @@ public class UploadDocument {
 			String remainingPath = folderpath.substring(availablePath.length()+1);
 			String[] folders = remainingPath.split("/");
 			for (String folderName : folders) {
-				Folder folder = getFolder(availableFolder.getId(), folderName);
+				Folder folder = getFolder(availableFolder, folderName);
 				availableFolder = folder;
 			}
 		}
@@ -99,9 +99,7 @@ public class UploadDocument {
 		}
 	}
 
-	private synchronized Folder getFolder(String parentFolderId, String folderName) {
-
-		Folder folder = (Folder) session.getObject(parentFolderId);
+	private synchronized Folder getFolder(Folder folder, String folderName) {
 
 		Folder subFolder = null;
 		try {
@@ -144,11 +142,11 @@ public class UploadDocument {
 		try {
 			VersioningState versioningState = version.equals(Version.MAJOR) ? VersioningState.MAJOR : VersioningState.MINOR ;
 			newDoc = folder.createDocument(properties, contentStream, versioningState);
-			LOGGER.info("New document has been created with name: "+newDoc.getName()+" with version "+newDoc.getVersionLabel()+" at location: "+folder+" having object ID: "+ newDoc.getId());
-			System.out.println("New document has been created with name: "+newDoc.getName()+" with version "+newDoc.getVersionLabel()+" at location: "+folder+" having object ID: "+ newDoc.getId());
+			LOGGER.info("New document has been created with name: "+newDoc.getName()+" with version: "+newDoc.getVersionLabel()+" at location: "+folder+" having object ID: "+ newDoc.getId());
+			System.out.println("New document has been created with name: "+newDoc.getName()+" with version: "+newDoc.getVersionLabel()+" at location: "+folder+" having object ID: "+ newDoc.getId());
 		} catch (CmisContentAlreadyExistsException ccaee) {
-			LOGGER.error("Error in creating document with name: "+newDoc.getName()+" with version "+newDoc.getVersionLabel()+" at location: "+folder ,ccaee);
-			System.out.println("Error in creating document with name: "+newDoc.getName()+" with version "+newDoc.getVersionLabel()+" at location: "+folder +ccaee);
+			LOGGER.error("Error in creating document with name: "+newDoc.getName()+" with version: "+newDoc.getVersionLabel()+" at location: "+folder ,ccaee);
+			System.out.println("Error in creating document with name: "+newDoc.getName()+" with version: "+newDoc.getVersionLabel()+" at location: "+folder);
 			return uploadNewVersion(folder, fileName, content, version);
 		}
 		return newDoc.getId();
