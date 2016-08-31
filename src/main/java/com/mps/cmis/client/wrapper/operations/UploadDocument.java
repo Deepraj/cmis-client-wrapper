@@ -12,7 +12,6 @@ import java.util.Map;
 
 import org.apache.chemistry.opencmis.client.api.Document;
 import org.apache.chemistry.opencmis.client.api.Folder;
-import org.apache.chemistry.opencmis.client.api.ObjectId;
 import org.apache.chemistry.opencmis.client.api.Session;
 import org.apache.chemistry.opencmis.commons.PropertyIds;
 import org.apache.chemistry.opencmis.commons.data.ContentStream;
@@ -150,55 +149,33 @@ public class UploadDocument {
 
 	}
 	
-/*	private String uploadNewVersion(Folder folder, String fileName, byte[] content, Version version) {
-		
-		synchronized (this) {
-			String objectId = null;
-			objectId = upload(folder, fileName, content, version);
-			return objectId;
-		}
-	}*/
-	
 	private String uploadNewVersion(Folder folder, String fileName, byte[] content, Version version) {
-
-		String filePath = getFilePath(folder.getPath(), fileName);
+		
 		UploadNewVersion upnv;
-		synchronized (this){
+		String filePath = getFilePath(folder.getPath(), fileName);
+		synchronized (this){			
 			upnv = filePathMap.get(filePath);
 			if (upnv == null) {
 				upnv = new UploadNewVersion(session);
-				System.out.println("******* Creating new UploadNewVersion object: " + upnv + " for thread " +Thread.currentThread());
 				filePathMap.put(filePath, upnv);
 			}
+			upnv.increaseCounter();
 		}
-		synchronized (upnv) {
-			String objectId = null;
+		String objectId = null;
+		synchronized (upnv) {			
 			objectId = upnv.upload(folder, fileName, content, version);
-			return objectId;
-		}
+			upnv.decreaseCounter();
+			if(upnv.getCounter() == 0){
+				synchronized (this) {
+					if(upnv.getCounter() == 0){
+						filePathMap.remove(filePath);
+					}				
+				}				
+			}
+		}		
+		return objectId;
 	}
 	
-	private String upload(Folder folder, String fileName, byte[] content, Version version ) {
-		
-		ObjectId objectId = null;
-		String filePath = folder.getPath() + "/" + fileName;
-		Document document = (Document) session.getObjectByPath(filePath);
-		
-		if (document.getAllowableActions().getAllowableActions()
-				.contains(org.apache.chemistry.opencmis.commons.enums.Action.CAN_CHECK_OUT)) {
-			ObjectId idOfCheckedOutDocument = document.checkOut();
-			Document pwc = (Document) session.getObject(idOfCheckedOutDocument);
-			ByteArrayInputStream stream = new ByteArrayInputStream(content);
-			ContentStream contentStream = session.getObjectFactory().createContentStream(document.getName(),
-					Long.valueOf(content.length), document.getContentStreamMimeType(), stream);
-			boolean isMajorVersion = version.name().equals(Version.MAJOR.name());
-			objectId = pwc.checkIn(isMajorVersion, null, contentStream, version.name() + " changes");
-			LOGGER.info("Document: "+filePath+" has been updated succesfully. New Object ID is: "+objectId.getId());			
-		}
-		return objectId.getId();
-	}
-	
-
 	private String getFileMimeType(String fileName) throws IOException {
 		String mimeType = null;
 		Path path = Paths.get(fileName);

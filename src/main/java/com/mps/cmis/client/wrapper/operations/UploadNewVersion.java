@@ -7,20 +7,22 @@ import org.apache.chemistry.opencmis.client.api.Folder;
 import org.apache.chemistry.opencmis.client.api.ObjectId;
 import org.apache.chemistry.opencmis.client.api.Session;
 import org.apache.chemistry.opencmis.commons.data.ContentStream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.mps.cmis.client.wrapper.enums.Version;
 
 public class UploadNewVersion {
 	
+	private final static Logger LOGGER = LoggerFactory.getLogger(UploadDocument.class);
 	private Session session;
+	private volatile int threadCounter = 0;
 	
 	public UploadNewVersion(Session session){
 		this.session = session;
 	}
 	
 	public String upload(Folder folder, String fileName, byte[] content, Version version ) {
-		
-		System.out.println("start uploading document: "+fileName+" for thread: "+ Thread.currentThread());
 		
 		ObjectId objectId = null;
 		String filePath = folder.getPath() + "/" + fileName;
@@ -35,13 +37,23 @@ public class UploadNewVersion {
 					Long.valueOf(content.length), document.getContentStreamMimeType(), stream);
 			boolean isMajorVersion = version.name().equals(Version.MAJOR.name());
 			objectId = pwc.checkIn(isMajorVersion, null, contentStream, version.name() + " changes");
-			//LOGGER.info("Document has been updated with name: " + fileName + " at location " + folder +" New Object ID is: "+objectId.getId());
-			//System.out.println("Document has been updated with name: " + fileName + " at location " + folder +" New Object ID is: "+objectId.getId());
+			LOGGER.info("Document: "+filePath+" has been updated succesfully. New Object ID is: "+objectId.getId());
 			
 		}
-		System.out.println("uploading document: "+fileName+" for thread: "+ Thread.currentThread()+" has been completed");
-		System.out.println();
 		return objectId.getId();
 	}
+	
+	public void increaseCounter(){
+		threadCounter = threadCounter + 1 ;
+	}
+	
+	public void decreaseCounter(){
+		threadCounter = threadCounter - 1 ;
+	}
+	
+	public int getCounter(){
+		return threadCounter;
+	}
+
 
 }
