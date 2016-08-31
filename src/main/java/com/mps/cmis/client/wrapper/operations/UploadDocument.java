@@ -32,6 +32,7 @@ public class UploadDocument {
 	private final static Logger LOGGER = LoggerFactory.getLogger(UploadDocument.class);
 	private static UploadDocument uploadDocumentSingletonInstance;
 	private Session session;
+	private Map<String,UploadNewVersion> filePathMap = new HashMap<String,UploadNewVersion>();
 
 	public static UploadDocument getInstance(CMISSession cmisSession) throws Exception {
 
@@ -149,11 +150,30 @@ public class UploadDocument {
 
 	}
 	
-	private String uploadNewVersion(Folder folder, String fileName, byte[] content, Version version) {
+/*	private String uploadNewVersion(Folder folder, String fileName, byte[] content, Version version) {
 		
 		synchronized (this) {
 			String objectId = null;
 			objectId = upload(folder, fileName, content, version);
+			return objectId;
+		}
+	}*/
+	
+	private String uploadNewVersion(Folder folder, String fileName, byte[] content, Version version) {
+
+		String filePath = getFilePath(folder.getPath(), fileName);
+		UploadNewVersion upnv;
+		synchronized (this){
+			upnv = filePathMap.get(filePath);
+			if (upnv == null) {
+				upnv = new UploadNewVersion(session);
+				System.out.println("******* Creating new UploadNewVersion object: " + upnv + " for thread " +Thread.currentThread());
+				filePathMap.put(filePath, upnv);
+			}
+		}
+		synchronized (upnv) {
+			String objectId = null;
+			objectId = upnv.upload(folder, fileName, content, version);
 			return objectId;
 		}
 	}
