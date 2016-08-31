@@ -76,7 +76,7 @@ public class UploadDocument {
 			String remainingPath = folderpath.substring(availablePath.length()+1);
 			String[] folders = remainingPath.split("/");
 			for (String folderName : folders) {
-				Folder folder = getFolder(availableFolder.getId(), folderName);
+				Folder folder = getFolder(availableFolder, folderName);
 				availableFolder = folder;
 			}
 		}
@@ -99,21 +99,17 @@ public class UploadDocument {
 		}
 	}
 
-	private synchronized Folder getFolder(String parentFolderId, String folderName) {
-
-		Folder folder = (Folder) session.getObject(parentFolderId);
+	private synchronized Folder getFolder(Folder parentFolder, String folderName) {
 
 		Folder subFolder = null;
 		try {
-			subFolder = (Folder) session.getObjectByPath(folder.getPath() + "/" + folderName);
+			subFolder = (Folder) session.getObjectByPath(parentFolder.getPath() + "/" + folderName);
 		} catch (CmisObjectNotFoundException onfe) {
-			LOGGER.error("Error in getting the required destination folder :" ,onfe);
 			Map<String, Object> props = new HashMap<String, Object>();
 			props.put("cmis:objectTypeId", "cmis:folder");
 			props.put("cmis:name", folderName);
-			subFolder = folder.createFolder(props);
-			LOGGER.info(folder.getPath() + "/" + folderName+ " Folder created successfully");
-			System.out.println(folder.getPath() + "/" + folderName+ " Folder created successfully");
+			subFolder = parentFolder.createFolder(props);
+			LOGGER.info(parentFolder.getPath() + "/" + folderName+ " Folder created successfully");
 		}
 		return subFolder;
 	}
@@ -144,11 +140,9 @@ public class UploadDocument {
 		try {
 			VersioningState versioningState = version.equals(Version.MAJOR) ? VersioningState.MAJOR : VersioningState.MINOR ;
 			newDoc = folder.createDocument(properties, contentStream, versioningState);
-			LOGGER.info("New document has been created with name: "+newDoc.getName()+" with version "+newDoc.getVersionLabel()+" at location: "+folder+" having object ID: "+ newDoc.getId());
-			System.out.println("New document has been created with name: "+newDoc.getName()+" with version "+newDoc.getVersionLabel()+" at location: "+folder+" having object ID: "+ newDoc.getId());
+			LOGGER.info("New document: "+newDoc.getName()+" has been created at location: "+folder.getPath()+" having object ID: "+ newDoc.getId());
 		} catch (CmisContentAlreadyExistsException ccaee) {
-			LOGGER.error("Error in creating document with name: "+newDoc.getName()+" with version "+newDoc.getVersionLabel()+" at location: "+folder ,ccaee);
-			System.out.println("Error in creating document with name: "+newDoc.getName()+" with version "+newDoc.getVersionLabel()+" at location: "+folder +ccaee);
+			LOGGER.error("Error in creating document: "+fileName+" at location: "+folder.getPath() ,ccaee);
 			return uploadNewVersion(folder, fileName, content, version);
 		}
 		return newDoc.getId();
@@ -179,9 +173,7 @@ public class UploadDocument {
 					Long.valueOf(content.length), document.getContentStreamMimeType(), stream);
 			boolean isMajorVersion = version.name().equals(Version.MAJOR.name());
 			objectId = pwc.checkIn(isMajorVersion, null, contentStream, version.name() + " changes");
-			LOGGER.info("Document has been updated with name: " + fileName + " at location " + folder +" New Object ID is: "+objectId.getId());
-			System.out.println("Document has been updated with name: " + fileName + " at location " + folder +" New Object ID is: "+objectId.getId());
-			
+			LOGGER.info("Document: "+filePath+" has been updated succesfully. New Object ID is: "+objectId.getId());			
 		}
 		return objectId.getId();
 	}
