@@ -1,7 +1,5 @@
 package com.mps.cmis.client.wrapper.operations;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -40,9 +38,9 @@ public class DownloadDocument {
 
 	public CMISDownloadResponse downloadDoc(String folderPath, String fileName, String version) throws IOException {
 		
-		String path = getFilePath(folderPath, fileName);
-		Document doc = getAppropriateDocument(version,path);
-		LOGGER.info("Downloading the file having name: "+fileName+" from location: "+folderPath+" with objectId "+doc.getId());
+		String fileAbsolutePath = getFilePath(folderPath, fileName);
+		Document doc = getAppropriateDocument(fileAbsolutePath,version);
+		LOGGER.info("Downloading the file: "+fileName+" from location: "+folderPath+" with objectId "+doc.getId());
 		byte[] content = download(doc);	
 		CMISDownloadResponse cmisDownloadResponse = new CMISDownloadResponse();
 		cmisDownloadResponse.setSuccess(true);	
@@ -51,52 +49,42 @@ public class DownloadDocument {
 		return cmisDownloadResponse;
 	}
 	
-	private String createObjectId(String previousId, String version) {
+	private String getFilePath(String folderpath, String fileName){
+		
+		if(!folderpath.endsWith("/")){
+			folderpath = folderpath + "/";
+		}	
+		return folderpath + fileName;
+		
+	}
+	
+	private Document getAppropriateDocument(String fileAbsolutePath, String version) {
+		
+		Document doc = (Document) session.getObjectByPath(fileAbsolutePath);
+		if (!(version == null || doc.getVersionLabel().equals(version))) {
+			String objectID = createNewObjectId(doc.getId(), version);
+			doc = (Document) session.getObject(objectID);
+		} 
+		return doc;
+
+	}
+	
+	private String createNewObjectId(String previousId, String version) {
 		String newObjectID = null;
 		String[] splittedObjectID = previousId.split(";");
 		newObjectID = splittedObjectID[0] + ";" + version;
-		LOGGER.info("New ObjectId for the downloading document is: "+newObjectID);
 		return newObjectID;
 	}
 
 	private byte[] download(Document doc) throws IOException{
 		
 		ContentStream contentStream = doc.getContentStream();
-		byte[] content=getContentInBytes(contentStream.getStream());
-		LOGGER.info("Byte data For the requested Document: "+doc.getName() +" has been returned.");
-
+		byte[] content = getContentInBytes(contentStream.getStream());
 		return content;
 	}	
-		
-	private String getFilePath(String folderpath, String fileName){
-		
-		if(!folderpath.endsWith("/")){
-			folderpath = folderpath + "/";
-		}	
-		LOGGER.info("File Path for the document to be downloaded is: "+folderpath + fileName);
-		return folderpath + fileName;
-		
-	}
-	
-	private Document getAppropriateDocument(String version, String path) {
-		
-		Document doc = (Document) session.getObjectByPath(path);
-		String objectID = null;
-		if ((doc.getVersionLabel().equals(version) || version == null)) {
-			objectID = doc.getId();
-			LOGGER.info("Object ID for the document having latest version or if version is null : "+objectID);
-		} else {
-			objectID = createObjectId(doc.getId(), version);
-			LOGGER.info("Object Id for the requested document that has to be downloaded :"+objectID);
-			doc = (Document) session.getObject(objectID);
-		}
-		return doc;
-
-	}
 	
 	private static byte[] getContentInBytes(InputStream inputStream) throws IOException {
-		byte[] content = IOUtils.toByteArray(inputStream);
-		return content;
+		return IOUtils.toByteArray(inputStream);
 	}
 }
 

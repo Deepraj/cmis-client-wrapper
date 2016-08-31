@@ -4,6 +4,7 @@ package com.mps.cmis.client.wrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.mps.cmis.client.wrapper.enums.Version;
 import com.mps.cmis.client.wrapper.exception.CMISException;
 import com.mps.cmis.client.wrapper.operations.DownloadDocument;
 import com.mps.cmis.client.wrapper.operations.UploadDocument;
@@ -15,7 +16,7 @@ public class Connector {
 	
 	private Connector(){}
 	
-	public static  CMISUploadResponse uploadDocument(CMISUploadRequest cmisRequest) {
+	public static  CMISUploadResponse uploadDocument(CMISUploadRequest cmisUploadRequest) {
 		
 		CMISUploadResponse cmisUploadResponse = null;
 		if(cmisSession == null){
@@ -28,13 +29,18 @@ public class Connector {
 				cmisUploadResponse.setException(connectionException);
 				return cmisUploadResponse;
 			}
-		}		
+		}
+		String folderPath = cmisUploadRequest.getFolderpath();
+		String fileName = cmisUploadRequest.getFileName();
+		Version version = cmisUploadRequest.getVersion();
+		
 		try {
 			UploadDocument uploadDocument = UploadDocument.getInstance(cmisSession);
-			cmisUploadResponse  = uploadDocument.uploadDoc(cmisRequest.getFolderpath(), cmisRequest.getFileName(), cmisRequest.getContent(), cmisRequest.getVersion());
+			cmisUploadResponse  = uploadDocument.uploadDoc(folderPath, fileName, cmisUploadRequest.getContent(), version);
 		} catch (Exception ex) {
+			LOGGER.error("Error in uploading file: "+fileName+" at path: "+folderPath+" with version: "+version,ex);
 			cmisUploadResponse = new CMISUploadResponse();
-			CMISException contentUploadException=new CMISException("Error in uploading "+cmisRequest.getFileName()+" at path "+cmisRequest.getFolderpath()+" with version "+cmisRequest.getVersion(),ex);
+			CMISException contentUploadException=new CMISException("Error in uploading file: "+fileName+" at path: "+folderPath+" with version: "+version,ex);
 			cmisUploadResponse.setException(contentUploadException);
 			return cmisUploadResponse;
 		}
@@ -55,13 +61,17 @@ public class Connector {
 				return cmisDownloadResponse;
 			}
 		}
+		
+		String folderPath = cmisDownloadRequest.getFolderPath();
+		String fileName = cmisDownloadRequest.getFileName();
+		String version = cmisDownloadRequest.getVersion();
 		try {
 			DownloadDocument downloadDocument = DownloadDocument.getInstance(cmisSession);
-			cmisDownloadResponse = downloadDocument.downloadDoc(cmisDownloadRequest.getFolderPath(), cmisDownloadRequest.getFileName(), cmisDownloadRequest.getVersion());
+			cmisDownloadResponse = downloadDocument.downloadDoc(folderPath, fileName, version);
 		} catch (Exception ex) {
-			LOGGER.error("Error in downloading the file: "+cmisDownloadRequest.getFileName()+" from path: "+cmisDownloadRequest.getFolderPath()+" with version: "+cmisDownloadRequest.getVersion(), ex);
+			LOGGER.error("Error in downloading the file: "+fileName+" from path: "+folderPath+" with version: "+version, ex);
 			cmisDownloadResponse = new CMISDownloadResponse();
-			CMISException contentDownloadException=new CMISException("Error in downloading the file: "+cmisDownloadRequest.getFileName()+" from path: "+cmisDownloadRequest.getFolderPath()+" with version: "+cmisDownloadRequest.getVersion(), ex);
+			CMISException contentDownloadException=new CMISException("Error in downloading the file: "+fileName+" from path: "+folderPath+" with version: "+version, ex);
 			cmisDownloadResponse.setException(contentDownloadException);
 			return cmisDownloadResponse;
 		}
