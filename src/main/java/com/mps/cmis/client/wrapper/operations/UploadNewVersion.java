@@ -14,7 +14,7 @@ import com.mps.cmis.client.wrapper.enums.Version;
 
 public class UploadNewVersion {
 	
-	private final static Logger LOGGER = LoggerFactory.getLogger(UploadDocument.class);
+	private final static Logger LOGGER = LoggerFactory.getLogger(UploadNewVersion.class);
 	private Session session;
 	private volatile int threadCounter = 0;
 	
