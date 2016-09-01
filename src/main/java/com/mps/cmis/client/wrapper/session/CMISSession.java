@@ -43,7 +43,7 @@ public class CMISSession {
 		LOGGER.info("Creating the session for CMIS Repository");
 		LOGGER.info("********Create Session***********");
 		
-		Properties cmisProperies = loadResources("cmisResources.properties");
+		Properties cmisProperies = loadResources("cmis-resources.properties");
 		parameter.put(SessionParameter.USER, cmisProperies.getProperty("cmis.session.user"));
 		parameter.put(SessionParameter.PASSWORD,cmisProperies.getProperty("cmis.session.password"));
 		parameter.put(SessionParameter.BROWSER_URL,cmisProperies.getProperty("cmis.session.browser.url"));
