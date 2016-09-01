@@ -88,7 +88,7 @@ public class UploadDocument {
 			Folder folder = (Folder) session.getObjectByPath(folderpath);
 			return folder;
 		} catch (CmisObjectNotFoundException onfe) {
-			LOGGER.info("Following folderpath: " + folderpath + " does not exist. " , onfe);
+			LOGGER.debug("Following folderpath: " + folderpath + " does not exist. " , onfe);
 			Folder subFolder = null;
 			int endIndex = folderpath.lastIndexOf("/");
 			if (endIndex != -1) {
