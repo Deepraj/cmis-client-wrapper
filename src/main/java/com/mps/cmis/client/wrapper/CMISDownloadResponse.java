@@ -1,31 +1,33 @@
 package com.mps.cmis.client.wrapper;
 
-public class CMISDownloadResponse implements CMISResponse {
+import java.io.Serializable;
+
+import com.mps.cmis.client.wrapper.exception.CMISException;
+
+public class CMISDownloadResponse implements Serializable {
 	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	private boolean isSuccess;
 	private byte[] content;
 	private String objectID;
-	private String errorMessage;
-	private Exception exception;
+	private CMISException cmisException;
+	
+	public CMISException getCmisException() {
+		return cmisException;
+	}
+	public void setCmisException(CMISException cmisException) {
+		this.cmisException = cmisException;
+	}
 	public boolean isSuccess() {
 		return isSuccess;
-	}
-	public Exception getException() {
-		return exception;
-	}
-	public void setException(Exception exception) {
-		this.exception = exception;
 	}
 	public void setSuccess(boolean isSuccess) {
 		this.isSuccess = isSuccess;
 	}
 	
-	public String getErrorMessage() {
-		return errorMessage;
-	}
-	public void setErrorMessage(String errorMessage) {
-		this.errorMessage = errorMessage;
-	}
 	public String getObjectID() {
 		return objectID;
 	}
