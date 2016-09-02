@@ -31,7 +31,7 @@ public class Connector {
 				LOGGER.error("Cann't connect to CMIS repository, because of following exception: ", ex);
 				cmisUploadResponse = new CMISUploadResponse();
 				CMISException connectionException = new CMISException("Cann't connect to CMIS repository, because of following exception: ", ex);
-				cmisUploadResponse.setException(connectionException);
+				cmisUploadResponse.setCmisException(connectionException);
 				return cmisUploadResponse;
 			}
 		}
@@ -46,7 +46,7 @@ public class Connector {
 			LOGGER.error("Error in retrieving parameters from cmisUploadRequest beacause of following exception :",exception);
 			cmisUploadResponse = new CMISUploadResponse();
 			CMISException contentUploadRequestException=new CMISException("Error in retrieving parameters from cmisUploadRequest beacause of following exception :", exception);
-			cmisUploadResponse.setException(contentUploadRequestException);
+			cmisUploadResponse.setCmisException(contentUploadRequestException);
 			return cmisUploadResponse;
 		}
 		try {
@@ -56,7 +56,7 @@ public class Connector {
 			LOGGER.error("Error in uploading file: "+fileName+" at path: "+folderPath+" with version: "+version , ex);
 			cmisUploadResponse = new CMISUploadResponse();
 			CMISException contentUploadException=new CMISException("Error in uploading file: "+fileName+" at path: "+folderPath+" with version: "+version, ex);
-			cmisUploadResponse.setException(contentUploadException);
+			cmisUploadResponse.setCmisException(contentUploadException);
 			return cmisUploadResponse;
 		}
 		return cmisUploadResponse;
@@ -76,7 +76,7 @@ public class Connector {
 				LOGGER.error("Cann't connect to CMIS repository, because of following exception: ", ex);
 				cmisDownloadResponse = new CMISDownloadResponse();
 				CMISException connectionException=new CMISException("Cann't connect to CMIS repository, because of following exception: ",ex);
-				cmisDownloadResponse.setException(connectionException);
+				cmisDownloadResponse.setCmisException(connectionException);
 				return cmisDownloadResponse;
 			}
 		}
@@ -91,7 +91,7 @@ public class Connector {
 			LOGGER.error("Error in retrieving parameters from cmisDownloadRequest beacause of following exception :",exception);
 			cmisDownloadResponse = new CMISDownloadResponse();
 			CMISException contentUploadRequestException=new CMISException("Error in retrieving parameters from cmisDownloadRequest beacause of following exception :", exception);
-			cmisDownloadResponse.setException(contentUploadRequestException);
+			cmisDownloadResponse.setCmisException(contentUploadRequestException);
 			return cmisDownloadResponse;
 		}
 		
@@ -103,7 +103,7 @@ public class Connector {
 			LOGGER.error("Error in downloading the file: "+fileName+" from path: "+folderPath+" with version: "+version, ex);
 			cmisDownloadResponse = new CMISDownloadResponse();
 			CMISException contentDownloadException=new CMISException("Error in downloading the file: "+fileName+" from path: "+folderPath+" with version: "+version, ex);
-			cmisDownloadResponse.setException(contentDownloadException);
+			cmisDownloadResponse.setCmisException(contentDownloadException);
 			return cmisDownloadResponse;
 		}
 		return cmisDownloadResponse;

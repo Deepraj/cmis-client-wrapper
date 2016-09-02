@@ -1,18 +1,18 @@
 package com.mps.cmis.client.wrapper;
 
+import com.mps.cmis.client.wrapper.exception.CMISException;
+
 public class CMISUploadResponse implements CMISResponse {
 	
 	private boolean isSuccess;
 	private String objectID;
-	private String errorMessage;
-	private Exception exception;
-
+	private CMISException cmisException;
 	
-	public void setException(Exception exception) {
-		this.exception = exception;
+	public CMISException getCmisException() {
+		return cmisException;
 	}
-	public Exception getException() {
-		return exception;
+	public void setCmisException(CMISException cmisException) {
+		this.cmisException = cmisException;
 	}
 	
 	public boolean isSuccess() {
@@ -27,12 +27,5 @@ public class CMISUploadResponse implements CMISResponse {
 	public void setObjectID(String objectID) {
 		this.objectID = objectID;
 	}
-	public String getErrorMessage() {
-		return errorMessage;
-	}
-	public void setErrorMessage(String errorMessage) {
-		this.errorMessage = errorMessage;
-	}
-
-
+	
 }
