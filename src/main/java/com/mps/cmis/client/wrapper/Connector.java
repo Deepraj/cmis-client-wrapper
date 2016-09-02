@@ -13,15 +13,17 @@ import com.mps.cmis.client.wrapper.session.CMISSession;
 public class Connector {
 	private final static Logger LOGGER = LoggerFactory.getLogger(Connector.class);
 	private static CMISSession cmisSession;
-	static String folderPath=null;
-	static String fileName=null;
+
 	
 	private Connector(){}
 	
 	public static  CMISUploadResponse uploadDocument(CMISUploadRequest cmisUploadRequest) {
 		
-		 Version version=null;
+		String folderPath=null;
+		String fileName=null;
+		Version version=null;
 		CMISUploadResponse cmisUploadResponse = null;
+		
 		if(cmisSession == null){
 			try {
 				cmisSession = CMISSession.getInstance();
@@ -61,9 +63,12 @@ public class Connector {
 	}
 	
 	public static  CMISDownloadResponse downloadDocument(CMISDownloadRequest cmisDownloadRequest) {
-
+		
+		String folderPath=null;
+		String fileName=null;
 		String version=null;
 		CMISDownloadResponse cmisDownloadResponse = null;
+		
 		if(cmisSession == null){
 			try {
 				cmisSession = CMISSession.getInstance();
