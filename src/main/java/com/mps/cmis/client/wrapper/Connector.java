@@ -43,9 +43,9 @@ public class Connector {
 		}
 		catch(NullPointerException exception)
 		{
-			LOGGER.error("Error in retrieving parameters from cmisUploadRequest beacause of following exception :",exception);
+			LOGGER.error("The request cannot be  processed as cmisUploadRequest object is null :", exception);
 			cmisUploadResponse = new CMISUploadResponse();
-			CMISException contentUploadRequestException=new CMISException("Error in retrieving parameters from cmisUploadRequest beacause of following exception :", exception);
+			CMISException contentUploadRequestException=new CMISException("The request cannot be  processed as cmisUploadRequest object is null :", exception);
 			cmisUploadResponse.setCmisException(contentUploadRequestException);
 			return cmisUploadResponse;
 		}
@@ -88,9 +88,9 @@ public class Connector {
 		}
 		catch(NullPointerException exception)
 		{
-			LOGGER.error("Error in retrieving parameters from cmisDownloadRequest beacause of following exception :",exception);
+			LOGGER.error("The request cannot be  processed as cmisDownloadRequest object is null :",exception);
 			cmisDownloadResponse = new CMISDownloadResponse();
-			CMISException contentUploadRequestException=new CMISException("Error in retrieving parameters from cmisDownloadRequest beacause of following exception :", exception);
+			CMISException contentUploadRequestException=new CMISException("The request cannot be  processed as cmisDownloadRequest object is null :", exception);
 			cmisDownloadResponse.setCmisException(contentUploadRequestException);
 			return cmisDownloadResponse;
 		}
