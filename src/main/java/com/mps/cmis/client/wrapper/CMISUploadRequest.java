@@ -17,12 +17,12 @@ public class CMISUploadRequest implements Serializable{
 	private byte[] content; 
 	
 	
-	public CMISUploadRequest(String folderPath, String fileName, byte[] content, Version version) {
+	public CMISUploadRequest(String folderPath, String fileName,Version version, byte[] content) {
 		super();
 		this.folderPath = folderPath;
 		this.fileName = fileName;
-		this.content = content;
 		this.version = version;
+		this.content = content;	
 	}
 
 	public String getFolderpath() {
@@ -44,7 +44,7 @@ public class CMISUploadRequest implements Serializable{
 
 	@Override
 	public String toString() {
-		return "CMISRequest [folderpath=" + folderPath + ", fileName=" + fileName + ", version=" + version + ",content=" + Arrays.toString(content) + "]";
+		return "CMISRequest [folderpath=" + folderPath + ", fileName=" + fileName + ", version=" + version + "]";
 	}	
 
 }
