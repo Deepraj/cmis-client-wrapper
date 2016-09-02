@@ -1,7 +1,6 @@
 package com.mps.cmis.client.wrapper;
 
 import java.io.Serializable;
-import java.util.Arrays;
 
 import com.mps.cmis.client.wrapper.enums.Version;
 

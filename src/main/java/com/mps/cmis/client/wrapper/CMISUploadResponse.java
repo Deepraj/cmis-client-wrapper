@@ -6,9 +6,6 @@ import com.mps.cmis.client.wrapper.exception.CMISException;
 
 public class CMISUploadResponse implements Serializable {
 	
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
 	private boolean isSuccess;
 	private String objectID;

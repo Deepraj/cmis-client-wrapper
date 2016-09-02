@@ -12,13 +12,13 @@ import org.slf4j.LoggerFactory;
 
 import com.mps.cmis.client.wrapper.enums.Version;
 
-public class UploadNewVersion {
+class UploadNewVersion {
 	
 	private final static Logger LOGGER = LoggerFactory.getLogger(UploadNewVersion.class);
 	private Session session;
 	private volatile int threadCounter = 0;
 	
-	public UploadNewVersion(Session session){
+	UploadNewVersion(Session session){
 		this.session = session;
 	}
 	
